@@ -1,6 +1,6 @@
 <div align="center">
   <h1>Mole</h1>
-  <p><em>Deep clean and optimize your Mac.</em></p>
+  <p><em>Deep clean and optimize your Mac and Windows PC.</em></p>
 </div>
 
 <p align="center">
@@ -20,13 +20,16 @@
 
 ## Features
 
-- **All-in-one toolkit**: Combines CleanMyMac, AppCleaner, DaisyDisk, and iStat Menus in a **single binary**
+- **All-in-one toolkit**: Combines cleanup, app uninstallation, disk analysis, and performance monitoring in a **single binary**
 - **Deep cleaning**: Removes caches, logs, browser leftovers, and orphaned app data to **reclaim gigabytes of space**
-- **Smart uninstaller**: Removes apps plus launch agents, preferences, and **hidden remnants**
+- **Smart uninstaller**: Removes apps plus launch agents/startup registrations, preferences, and **hidden remnants**
 - **Disk insights**: Visualizes usage, finds large files, **rebuilds caches**, and refreshes system services
-- **Live monitoring**: Shows real-time CPU, GPU, memory, disk, and network stats
+- **Live monitoring**: Shows real-time CPU, memory, disk, and network stats
+- **Cross-platform**: Built natively in Go for **macOS and Windows x64**
 
 ## Quick Start
+
+### macOS Installation
 
 **Install via Homebrew**
 
@@ -41,7 +44,16 @@ brew install mole
 curl -fsSL https://raw.githubusercontent.com/tw93/mole/main/install.sh | bash
 ```
 
-> Note: Mole is built for macOS. An experimental Windows version is available in the [windows branch](https://github.com/tw93/Mole/tree/windows) for early adopters.
+### Windows Installation
+
+**Install via Go toolchain**
+
+```powershell
+go install github.com/tw93/mole/cmd/mole@latest
+```
+
+**Or download the compiled executable**
+Grab the latest `mole-windows-amd64.exe` from the [Releases](https://github.com/tw93/mole/releases) page and add it to your `PATH`.
 
 **Run**
 
@@ -49,16 +61,15 @@ curl -fsSL https://raw.githubusercontent.com/tw93/mole/main/install.sh | bash
 mo                           # Interactive menu
 mo clean                     # Deep cleanup + already-uninstalled app leftovers
 mo uninstall                 # Remove installed apps + their leftovers
-mo optimize                  # Refresh caches & services
+mo optimize                  # Refresh caches & services (includes DISM/SFC on Windows)
 mo analyze                   # Visual disk explorer (or 'mo analyse')
 mo status                    # Live system health dashboard
 mo purge                     # Clean project build artifacts
 mo installer                 # Find and remove installer files
 
-mo touchid                   # Configure Touch ID for sudo
+mo touchid                   # Configure Touch ID for sudo (macOS only)
 mo completion                # Set up shell tab completion
 mo update                    # Update Mole
-mo update --nightly          # Update to latest unreleased main build, script install only
 mo remove                    # Remove Mole from system
 mo --help                    # Show help
 mo --version                 # Show installed version
@@ -76,7 +87,7 @@ mo clean --dry-run --debug   # Preview + detailed logs
 mo optimize --whitelist      # Manage protected optimization rules
 mo clean --whitelist         # Manage protected caches
 mo purge --paths             # Configure project scan directories
-mo analyze /Volumes          # Analyze external drives only
+mo analyze /Volumes          # Analyze external drives (or specific paths like D:\ on Windows)
 ```
 
 ## Security & Safety Design
@@ -87,12 +98,12 @@ Mole uses safety-first defaults: path validation, protected-directory rules, con
 
 `mo analyze` is safer for ad hoc cleanup because it moves files to Trash through Finder instead of deleting them directly.
 
-Review [SECURITY.md](SECURITY.md) and [SECURITY_AUDIT.md](SECURITY_AUDIT.md) for reporting guidance, safety boundaries, and current limitations.
+Review [SECURITY.md](SECURITY.md) and [SECURITY_DESIGN.md](docs/SECURITY_DESIGN.md) for reporting guidance, safety boundaries, and current limitations.
 
 ## Tips
 
 - Video tutorial: Watch the [Mole tutorial video](https://www.youtube.com/watch?v=UEe9-w4CcQ0), thanks to PAPAYA 電腦教室.
-- Safety and logs: `clean`, `uninstall`, `purge`, `installer`, and `remove` are destructive. Review with `--dry-run` first, and add `--debug` when needed. File operations are logged to `~/Library/Logs/mole/operations.log`. Disable with `MO_NO_OPLOG=1`. Review [SECURITY.md](SECURITY.md) and [SECURITY_AUDIT.md](SECURITY_AUDIT.md).
+- Safety and logs: `clean`, `uninstall`, `purge`, `installer`, and `remove` are destructive. Review with `--dry-run` first, and add `--debug` when needed. File operations are logged to `~/Library/Logs/mole/operations.log` on macOS and `%LOCALAPPDATA%\Mole\Logs\operations.log` on Windows. Disable with `MO_NO_OPLOG=1`. Review [SECURITY.md](SECURITY.md) and [SECURITY_DESIGN.md](docs/SECURITY_DESIGN.md).
 - App leftovers: use `mo clean` when the app is already uninstalled, and `mo uninstall` when the app is still installed.
 - Navigation: Mole supports arrow keys and Vim bindings `h/j/k/l`.
 

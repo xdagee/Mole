@@ -45,15 +45,15 @@ type tickMsg struct{}
 type animTickMsg struct{}
 
 type metricsMsg struct {
-	data MetricsSnapshot
+	data status.MetricsSnapshot
 	err  error
 }
 
 type model struct {
-	collector   *Collector
+	status.Collector   *status.Collector
 	width       int
 	height      int
-	metrics     MetricsSnapshot
+	metrics     status.MetricsSnapshot
 	errMessage  string
 	ready       bool
 	lastUpdated time.Time
@@ -119,13 +119,13 @@ func saveCatHidden(hidden bool) {
 
 func newModel() model {
 	return model{
-		collector: NewCollector(processWatchOptionsFromFlags()),
+		status.Collector: status.NewCollector(processWatchOptionsFromFlags()),
 		catHidden: loadCatHidden(),
 	}
 }
 
-func processWatchOptionsFromFlags() ProcessWatchOptions {
-	return ProcessWatchOptions{
+func processWatchOptionsFromFlags() status.ProcessWatchOptions {
+	return status.ProcessWatchOptions{
 		Enabled:      *procCPUAlerts,
 		CPUThreshold: *procCPUThreshold,
 		Window:       *procCPUWindow,
@@ -239,7 +239,7 @@ func (m model) View() string {
 
 func (m model) collectCmd() tea.Cmd {
 	return func() tea.Msg {
-		data, err := m.collector.Collect()
+		data, err := m.status.Collector.Collect()
 		return metricsMsg{data: data, err: err}
 	}
 }
@@ -260,9 +260,9 @@ func animTickWithSpeed(cpuUsage float64) tea.Cmd {
 
 // runJSONMode collects metrics once and outputs as JSON.
 func runJSONMode() {
-	collector := NewCollector(processWatchOptionsFromFlags())
+	status.Collector := status.NewCollector(processWatchOptionsFromFlags())
 
-	data, err := collector.Collect()
+	data, err := status.Collector.Collect()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error collecting metrics: %v\n", err)
 		os.Exit(1)
@@ -299,8 +299,8 @@ func main() {
 	}
 }
 
-func activeAlerts(alerts []ProcessAlert) []ProcessAlert {
-	var active []ProcessAlert
+func activeAlerts(alerts []status.ProcessAlert) []status.ProcessAlert {
+	var active []status.ProcessAlert
 	for _, alert := range alerts {
 		if alert.Status == "active" {
 			active = append(active, alert)

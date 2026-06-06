@@ -16,7 +16,7 @@ If GitHub Security Advisories private reporting is enabled for the repository, y
 Include as much of the following as possible:
 
 - Mole version and install method
-- macOS version
+- OS version (macOS or Windows)
 - Exact command or workflow involved
 - Reproduction steps or proof of concept
 - Whether the issue involves deletion boundaries, symlinks, sudo, path validation, or release/install integrity
@@ -73,4 +73,4 @@ The project pays particular attention to:
 - Sensitive data exclusions
 - Packaging, release artifacts, checksums, and update/install flows
 
-For the current technical design and known limitations, see [SECURITY_AUDIT.md](SECURITY_AUDIT.md).
+For the current technical design and known limitations, see [SECURITY_DESIGN.md](docs/SECURITY_DESIGN.md).

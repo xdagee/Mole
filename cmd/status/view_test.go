@@ -187,19 +187,19 @@ func TestHumanBytesCompact(t *testing.T) {
 func TestSplitDisks(t *testing.T) {
 	tests := []struct {
 		name         string
-		disks        []DiskStatus
+		disks        []status.DiskStatus
 		wantInternal int
 		wantExternal int
 	}{
 		{
 			name:         "empty slice",
-			disks:        []DiskStatus{},
+			disks:        []status.DiskStatus{},
 			wantInternal: 0,
 			wantExternal: 0,
 		},
 		{
 			name: "all internal",
-			disks: []DiskStatus{
+			disks: []status.DiskStatus{
 				{Mount: "/", External: false},
 				{Mount: "/System", External: false},
 			},
@@ -208,7 +208,7 @@ func TestSplitDisks(t *testing.T) {
 		},
 		{
 			name: "all external",
-			disks: []DiskStatus{
+			disks: []status.DiskStatus{
 				{Mount: "/Volumes/USB", External: true},
 				{Mount: "/Volumes/Backup", External: true},
 			},
@@ -217,7 +217,7 @@ func TestSplitDisks(t *testing.T) {
 		},
 		{
 			name: "mixed",
-			disks: []DiskStatus{
+			disks: []status.DiskStatus{
 				{Mount: "/", External: false},
 				{Mount: "/Volumes/USB", External: true},
 				{Mount: "/System", External: false},
@@ -682,7 +682,7 @@ func TestFormatDiskLine(t *testing.T) {
 	tests := []struct {
 		name         string
 		label        string
-		disk         DiskStatus
+		disk         status.DiskStatus
 		wantUsed     string
 		wantFree     string
 		wantNoSubstr string
@@ -690,7 +690,7 @@ func TestFormatDiskLine(t *testing.T) {
 		{
 			name:         "empty label defaults to DISK",
 			label:        "",
-			disk:         DiskStatus{UsedPercent: 50.5, Used: 100 << 30, Total: 200 << 30},
+			disk:         status.DiskStatus{UsedPercent: 50.5, Used: 100 << 30, Total: 200 << 30},
 			wantUsed:     "100G used",
 			wantFree:     "100G free",
 			wantNoSubstr: "%",
@@ -698,7 +698,7 @@ func TestFormatDiskLine(t *testing.T) {
 		{
 			name:         "internal disk",
 			label:        "INTR",
-			disk:         DiskStatus{UsedPercent: 67.2, Used: 336 << 30, Total: 500 << 30},
+			disk:         status.DiskStatus{UsedPercent: 67.2, Used: 336 << 30, Total: 500 << 30},
 			wantUsed:     "336G used",
 			wantFree:     "164G free",
 			wantNoSubstr: "%",
@@ -706,7 +706,7 @@ func TestFormatDiskLine(t *testing.T) {
 		{
 			name:         "external disk",
 			label:        "EXTR1",
-			disk:         DiskStatus{UsedPercent: 85.0, Used: 850 << 30, Total: 1000 << 30},
+			disk:         status.DiskStatus{UsedPercent: 85.0, Used: 850 << 30, Total: 1000 << 30},
 			wantUsed:     "850G used",
 			wantFree:     "150G free",
 			wantNoSubstr: "%",
@@ -714,7 +714,7 @@ func TestFormatDiskLine(t *testing.T) {
 		{
 			name:         "low usage",
 			label:        "INTR",
-			disk:         DiskStatus{UsedPercent: 15.3, Used: 15 << 30, Total: 100 << 30},
+			disk:         status.DiskStatus{UsedPercent: 15.3, Used: 15 << 30, Total: 100 << 30},
 			wantUsed:     "15G used",
 			wantFree:     "85G free",
 			wantNoSubstr: "%",
@@ -722,7 +722,7 @@ func TestFormatDiskLine(t *testing.T) {
 		{
 			name:         "used exceeds total clamps free to zero",
 			label:        "INTR",
-			disk:         DiskStatus{UsedPercent: 110.0, Used: 110 << 30, Total: 100 << 30},
+			disk:         status.DiskStatus{UsedPercent: 110.0, Used: 110 << 30, Total: 100 << 30},
 			wantUsed:     "110G used",
 			wantFree:     "0 free",
 			wantNoSubstr: "%",
@@ -757,7 +757,7 @@ func TestFormatDiskLine(t *testing.T) {
 }
 
 func TestRenderDiskCardAddsMetaLineForSingleDisk(t *testing.T) {
-	card := renderDiskCard([]DiskStatus{{
+	card := renderDiskCard([]status.DiskStatus{{
 		UsedPercent: 28.4,
 		Used:        263 << 30,
 		Total:       926 << 30,
@@ -775,7 +775,7 @@ func TestRenderDiskCardAddsMetaLineForSingleDisk(t *testing.T) {
 }
 
 func TestRenderDiskCardDoesNotAddMetaLineForMultipleDisks(t *testing.T) {
-	card := renderDiskCard([]DiskStatus{
+	card := renderDiskCard([]status.DiskStatus{
 		{UsedPercent: 28.4, Used: 263 << 30, Total: 926 << 30, Fstype: "apfs"},
 		{UsedPercent: 50.0, Used: 500 << 30, Total: 1000 << 30, Fstype: "apfs"},
 	}, DiskIOStatus{}, 0, false)
@@ -792,7 +792,7 @@ func TestRenderDiskCardDoesNotAddMetaLineForMultipleDisks(t *testing.T) {
 }
 
 func TestRenderDiskCardTrashLine(t *testing.T) {
-	disk := DiskStatus{UsedPercent: 50, Used: 500 << 30, Total: 1000 << 30, Fstype: "apfs"}
+	disk := status.DiskStatus{UsedPercent: 50, Used: 500 << 30, Total: 1000 << 30, Fstype: "apfs"}
 	tests := []struct {
 		name      string
 		trashSize uint64
@@ -805,7 +805,7 @@ func TestRenderDiskCardTrashLine(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			card := renderDiskCard([]DiskStatus{disk}, DiskIOStatus{}, tt.trashSize, tt.approx)
+			card := renderDiskCard([]status.DiskStatus{disk}, DiskIOStatus{}, tt.trashSize, tt.approx)
 			found := ""
 			for _, line := range card.lines {
 				if s := stripANSI(line); len(s) > 5 && s[:5] == "Trash" {
@@ -953,7 +953,7 @@ func TestSparkline(t *testing.T) {
 }
 
 func TestRenderHeaderErrorReturnsMoleOnce(t *testing.T) {
-	header, mole := renderHeader(MetricsSnapshot{}, "boom", 0, 120, false)
+	header, mole := renderHeader(status.MetricsSnapshot{}, "boom", 0, 120, false)
 
 	if mole != "" {
 		t.Fatalf("renderHeader() mole return should be empty on error to avoid duplicate render, got %q", mole)
@@ -967,9 +967,9 @@ func TestRenderHeaderErrorReturnsMoleOnce(t *testing.T) {
 }
 
 func TestRenderHeaderWrapsOnNarrowWidth(t *testing.T) {
-	m := MetricsSnapshot{
+	m := status.MetricsSnapshot{
 		HealthScore: 91,
-		Hardware: HardwareInfo{
+		Hardware: status.HardwareInfo{
 			Model:       "MacBook Pro",
 			CPUModel:    "Apple M3 Max",
 			TotalRAM:    "128GB",
@@ -989,9 +989,9 @@ func TestRenderHeaderWrapsOnNarrowWidth(t *testing.T) {
 }
 
 func TestRenderHeaderHidesOSAndUptimeOnNarrowWidth(t *testing.T) {
-	m := MetricsSnapshot{
+	m := status.MetricsSnapshot{
 		HealthScore: 91,
-		Hardware: HardwareInfo{
+		Hardware: status.HardwareInfo{
 			Model:       "MacBook Pro",
 			CPUModel:    "Apple M3 Max",
 			TotalRAM:    "128GB",
@@ -1013,9 +1013,9 @@ func TestRenderHeaderHidesOSAndUptimeOnNarrowWidth(t *testing.T) {
 }
 
 func TestRenderHeaderDropsLowPriorityInfoToStaySingleLine(t *testing.T) {
-	m := MetricsSnapshot{
+	m := status.MetricsSnapshot{
 		HealthScore: 90,
-		Hardware: HardwareInfo{
+		Hardware: status.HardwareInfo{
 			Model:       "MacBook Pro",
 			CPUModel:    "Apple M2 Pro",
 			TotalRAM:    "32.0 GB",
@@ -1023,7 +1023,7 @@ func TestRenderHeaderDropsLowPriorityInfoToStaySingleLine(t *testing.T) {
 			RefreshRate: "60Hz",
 			OSVersion:   "macOS 26.3",
 		},
-		GPU:    []GPUStatus{{CoreCount: 19}},
+		GPU:    []status.GPUStatus{{CoreCount: 19}},
 		Uptime: "9d 13h",
 	}
 
@@ -1059,7 +1059,7 @@ func TestRenderCardWrapsOnNarrowWidth(t *testing.T) {
 }
 
 func TestRenderMemoryCardHidesSwapSizeOnNarrowWidth(t *testing.T) {
-	card := renderMemoryCard(MemoryStatus{
+	card := renderMemoryCard(status.MemoryStatus{
 		Used:        8 << 30,
 		Total:       16 << 30,
 		Available:   8 << 30,
@@ -1079,7 +1079,7 @@ func TestRenderMemoryCardHidesSwapSizeOnNarrowWidth(t *testing.T) {
 }
 
 func TestRenderMemoryCardShowsSwapSizeOnWideWidth(t *testing.T) {
-	card := renderMemoryCard(MemoryStatus{
+	card := renderMemoryCard(status.MemoryStatus{
 		Used:        8 << 30,
 		Total:       16 << 30,
 		Available:   8 << 30,
@@ -1099,7 +1099,7 @@ func TestRenderMemoryCardShowsSwapSizeOnWideWidth(t *testing.T) {
 }
 
 func TestRenderMemoryCardUsesCollectedAvailableMemory(t *testing.T) {
-	card := renderMemoryCard(MemoryStatus{
+	card := renderMemoryCard(status.MemoryStatus{
 		Used:        12 << 30,
 		Total:       16 << 30,
 		Available:   9 << 30,
@@ -1134,7 +1134,7 @@ func TestModelViewPadsToTerminalHeight(t *testing.T) {
 				width:   tt.width,
 				height:  tt.height,
 				ready:   true,
-				metrics: MetricsSnapshot{},
+				metrics: status.MetricsSnapshot{},
 			}
 
 			view := m.View()
@@ -1151,7 +1151,7 @@ func TestModelViewErrorRendersSingleMole(t *testing.T) {
 		width:      120,
 		height:     40,
 		ready:      true,
-		metrics:    MetricsSnapshot{},
+		metrics:    status.MetricsSnapshot{},
 		errMessage: "boom",
 		animFrame:  0,
 		catHidden:  false,

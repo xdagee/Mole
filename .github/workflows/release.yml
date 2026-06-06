@@ -21,6 +21,9 @@ jobs:
           - os: macos-latest
             target: release-arm64
             artifact_name: binaries-arm64
+          - os: ubuntu-latest
+            target: release-windows-amd64
+            artifact_name: binaries-windows-amd64
     steps:
       - name: Checkout code
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v4
@@ -32,18 +35,21 @@ jobs:
 
       - name: Build Binaries
         run: |
+          # The Windows target does not need native CGO, so we can run on ubuntu-latest using make
+          # install make on ubuntu-latest if missing, though it's pre-installed
           make ${{ matrix.target }}
           ls -l bin/
 
       - name: Package binaries for Homebrew
+        if: matrix.target != 'release-windows-amd64'
         run: |
           cd bin
           # Package binaries into tar.gz for Homebrew resource
           if [[ "${{ matrix.target }}" == "release-arm64" ]]; then
-            tar -czf binaries-darwin-arm64.tar.gz analyze-darwin-arm64 status-darwin-arm64
+            tar -czf binaries-darwin-arm64.tar.gz mole-darwin-arm64 analyze-darwin-arm64 status-darwin-arm64
             ls -lh binaries-darwin-arm64.tar.gz
           else
-            tar -czf binaries-darwin-amd64.tar.gz analyze-darwin-amd64 status-darwin-amd64
+            tar -czf binaries-darwin-amd64.tar.gz mole-darwin-amd64 analyze-darwin-amd64 status-darwin-amd64
             ls -lh binaries-darwin-amd64.tar.gz
           fi
 
@@ -51,7 +57,9 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ matrix.artifact_name }}
-          path: bin/*-darwin-*
+          path: |
+            bin/*-darwin-*
+            bin/*-windows-*
           retention-days: 1
 
   release:
@@ -88,9 +96,13 @@ jobs:
         uses: actions/attest-build-provenance@v4
         with:
           subject-path: |
+            bin/mole-darwin-*
             bin/analyze-darwin-*
             bin/status-darwin-*
             bin/binaries-darwin-*.tar.gz
+            bin/mole-windows-*
+            bin/analyze-windows-*
+            bin/status-windows-*
             bin/SHA256SUMS
 
       - name: Create Release

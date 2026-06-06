@@ -136,7 +136,7 @@ type cardData struct {
 	lines []string
 }
 
-func renderHeader(m MetricsSnapshot, errMsg string, animFrame int, termWidth int, catHidden bool) (string, string) {
+func renderHeader(m status.MetricsSnapshot, errMsg string, animFrame int, termWidth int, catHidden bool) (string, string) {
 	if termWidth <= 0 {
 		termWidth = 80
 	}
@@ -249,7 +249,7 @@ func getScoreStyle(score int) lipgloss.Style {
 	}
 }
 
-func renderProcessAlertBar(alerts []ProcessAlert, width int) string {
+func renderProcessAlertBar(alerts []status.ProcessAlert, width int) string {
 	active := activeAlerts(alerts)
 	if len(active) == 0 {
 		return ""
@@ -278,7 +278,7 @@ func renderBanner(style lipgloss.Style, text string, width int) string {
 	return style.Render(text)
 }
 
-func renderCPUCard(cpu CPUStatus, thermal ThermalStatus) cardData {
+func renderCPUCard(cpu status.CPUStatus, thermal ThermalStatus) cardData {
 	var lines []string
 
 	// Line 1: Usage + Temp (Format: 15% @ 30.4°C)
@@ -323,7 +323,7 @@ func renderCPUCard(cpu CPUStatus, thermal ThermalStatus) cardData {
 	return cardData{icon: iconCPU, title: "CPU", lines: lines}
 }
 
-func renderMemoryCard(mem MemoryStatus, cardWidth int) cardData {
+func renderMemoryCard(mem status.MemoryStatus, cardWidth int) cardData {
 	// Check if swap is being used (or at least allocated).
 	hasSwap := mem.SwapTotal > 0 || mem.SwapUsed > 0
 
@@ -387,13 +387,13 @@ func renderMemoryCard(mem MemoryStatus, cardWidth int) cardData {
 	return cardData{icon: iconMemory, title: "Memory", lines: lines}
 }
 
-func renderDiskCard(disks []DiskStatus, io DiskIOStatus, trashSize uint64, trashApprox bool) cardData {
+func renderDiskCard(disks []status.DiskStatus, io DiskIOStatus, trashSize uint64, trashApprox bool) cardData {
 	var lines []string
 	if len(disks) == 0 {
 		lines = append(lines, subtleStyle.Render("Collecting..."))
 	} else {
 		internal, external := splitDisks(disks)
-		addGroup := func(prefix string, list []DiskStatus) {
+		addGroup := func(prefix string, list []status.DiskStatus) {
 			if len(list) == 0 {
 				return
 			}
@@ -424,7 +424,7 @@ func renderDiskCard(disks []DiskStatus, io DiskIOStatus, trashSize uint64, trash
 	return cardData{icon: iconDisk, title: "Disk", lines: lines}
 }
 
-func splitDisks(disks []DiskStatus) (internal, external []DiskStatus) {
+func splitDisks(disks []status.DiskStatus) (internal, external []status.DiskStatus) {
 	for _, d := range disks {
 		if d.External {
 			external = append(external, d)
@@ -442,7 +442,7 @@ func diskLabel(prefix string, index int, total int) string {
 	return fmt.Sprintf("%s%d", prefix, index+1)
 }
 
-func formatDiskLine(label string, d DiskStatus) string {
+func formatDiskLine(label string, d status.DiskStatus) string {
 	if label == "" {
 		label = "DISK"
 	}
@@ -455,7 +455,7 @@ func formatDiskLine(label string, d DiskStatus) string {
 	return fmt.Sprintf("%-6s %s  %s used, %s free", label, bar, used, humanBytesShort(free))
 }
 
-func formatDiskMetaLine(d DiskStatus) string {
+func formatDiskMetaLine(d status.DiskStatus) string {
 	parts := []string{humanBytesShort(d.Total)}
 	if d.Fstype != "" {
 		parts = append(parts, strings.ToUpper(d.Fstype))
@@ -492,7 +492,7 @@ func renderProcessCard(procs []ProcessInfo) cardData {
 	return cardData{icon: iconProcs, title: "Processes", lines: lines}
 }
 
-func buildCards(m MetricsSnapshot, width int) []cardData {
+func buildCards(m status.MetricsSnapshot, width int) []cardData {
 	cards := []cardData{
 		renderCPUCard(m.CPU, m.Thermal),
 		renderMemoryCard(m.Memory, width),
@@ -513,7 +513,7 @@ func miniBar(percent float64) string {
 	return colorizePercent(percent, strings.Repeat("▮", filled)+strings.Repeat("▯", 5-filled))
 }
 
-func renderNetworkCard(netStats []NetworkStatus, history NetworkHistory, proxy ProxyStatus, cardWidth int) cardData {
+func renderNetworkCard(netStats []status.NetworkStatus, history NetworkHistory, proxy ProxyStatus, cardWidth int) cardData {
 	var lines []string
 	var totalRx, totalTx float64
 	var primaryIP string
