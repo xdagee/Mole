@@ -7,9 +7,11 @@ import (
 	"sync"
 
 	"github.com/tw93/mole/cmd/platform"
+	"github.com/tw93/mole/internal/analyze"
 	"github.com/tw93/mole/internal/clean"
 	"github.com/tw93/mole/internal/optimize"
 	"github.com/tw93/mole/internal/purge"
+	"github.com/tw93/mole/internal/status"
 	"github.com/tw93/mole/internal/uninstall"
 	"github.com/tw93/mole/pkg/config"
 	"github.com/tw93/mole/pkg/logutil"
@@ -35,6 +37,8 @@ type App struct {
 
 	mu           sync.Mutex
 	activeCancel context.CancelFunc
+
+	statusCollector *status.Collector
 }
 
 // NewApp creates a new App application struct
@@ -46,6 +50,7 @@ func NewApp() *App {
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 	a.logger = logutil.NewStreamLogger(&EventWriter{ctx: ctx})
+	a.statusCollector = status.NewCollector(status.ProcessWatchOptions{})
 }
 
 // startOperation sets up a cancellable context
@@ -73,6 +78,29 @@ func (a *App) CancelOperation() {
 		a.activeCancel = nil
 		a.logger.Warning("Operation cancelled by user.")
 	}
+}
+
+// GetStatus returns the latest system metrics snapshot.
+func (a *App) GetStatus() (status.MetricsSnapshot, error) {
+	snap, err := a.statusCollector.Collect()
+	if err != nil {
+		if a.logger != nil {
+			a.logger.Warning("GetStatus partial failure: %v", err)
+		}
+	}
+	// Always return nil error so Wails resolves the Promise with the partial snapshot
+	return snap, nil
+}
+
+// AnalyzeDisk scans a directory and returns its usage tree.
+func (a *App) AnalyzeDisk(target string) (*analyze.Node, error) {
+	ctx, done := a.startOperation()
+	defer done()
+
+	if target == "" {
+		target = "C:\\" // Default to C: on Windows if empty
+	}
+	return analyze.ScanDirectory(ctx, target)
 }
 
 // RunClean executes system cleanup

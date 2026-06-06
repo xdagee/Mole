@@ -6,16 +6,32 @@ import (
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/shirou/gopsutil/v4/cpu"
+	"github.com/shirou/gopsutil/v4/host"
+	"github.com/tw93/mole/internal/units"
 )
 
 func collectHardware(totalRAM uint64, disks []DiskStatus) HardwareInfo {
 	if runtime.GOOS != "darwin" {
+		cpuModel := runtime.GOARCH
+		if info, err := cpu.Info(); err == nil && len(info) > 0 {
+			cpuModel = info[0].ModelName
+		}
+		osVersion := runtime.GOOS
+		if hInfo, err := host.Info(); err == nil {
+			osVersion = hInfo.Platform + " " + hInfo.PlatformVersion
+		}
+		diskSize := "Unknown"
+		if len(disks) > 0 {
+			diskSize = units.BytesBin(disks[0].Total)
+		}
 		return HardwareInfo{
-			Model:       "Unknown",
-			CPUModel:    runtime.GOARCH,
-			TotalRAM:    humanBytes(totalRAM),
-			DiskSize:    "Unknown",
-			OSVersion:   runtime.GOOS,
+			Model:       "Windows PC",
+			CPUModel:    cpuModel,
+			TotalRAM:    units.BytesBin(totalRAM),
+			DiskSize:    diskSize,
+			OSVersion:   osVersion,
 			RefreshRate: "",
 		}
 	}
@@ -69,13 +85,13 @@ func collectHardware(totalRAM uint64, disks []DiskStatus) HardwareInfo {
 
 	diskSize := "Unknown"
 	if len(disks) > 0 {
-		diskSize = humanBytes(disks[0].Total)
+		diskSize = units.BytesBin(disks[0].Total)
 	}
 
 	return HardwareInfo{
 		Model:       model,
 		CPUModel:    cpuModel,
-		TotalRAM:    humanBytes(totalRAM),
+		TotalRAM:    units.BytesBin(totalRAM),
 		DiskSize:    diskSize,
 		OSVersion:   osVersion,
 		RefreshRate: refreshRate,

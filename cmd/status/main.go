@@ -12,6 +12,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/tw93/mole/internal/status"
 )
 
 const refreshInterval = time.Second
@@ -50,7 +51,7 @@ type metricsMsg struct {
 }
 
 type model struct {
-	status.Collector   *status.Collector
+	collector   *status.Collector
 	width       int
 	height      int
 	metrics     status.MetricsSnapshot
@@ -119,7 +120,7 @@ func saveCatHidden(hidden bool) {
 
 func newModel() model {
 	return model{
-		status.Collector: status.NewCollector(processWatchOptionsFromFlags()),
+		collector: status.NewCollector(processWatchOptionsFromFlags()),
 		catHidden: loadCatHidden(),
 	}
 }
@@ -239,7 +240,7 @@ func (m model) View() string {
 
 func (m model) collectCmd() tea.Cmd {
 	return func() tea.Msg {
-		data, err := m.status.Collector.Collect()
+		data, err := m.collector.Collect()
 		return metricsMsg{data: data, err: err}
 	}
 }
@@ -260,9 +261,9 @@ func animTickWithSpeed(cpuUsage float64) tea.Cmd {
 
 // runJSONMode collects metrics once and outputs as JSON.
 func runJSONMode() {
-	status.Collector := status.NewCollector(processWatchOptionsFromFlags())
+	collector := status.NewCollector(processWatchOptionsFromFlags())
 
-	data, err := status.Collector.Collect()
+	data, err := collector.Collect()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error collecting metrics: %v\n", err)
 		os.Exit(1)

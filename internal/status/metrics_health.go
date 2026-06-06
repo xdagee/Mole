@@ -37,8 +37,8 @@ const (
 	ioHighThreshold   = 150.0
 
 	// Battery.
-	batteryCycleWarn   = 500
-	batteryCycleDanger = 900
+	BatteryCycleWarn   = 500
+	BatteryCycleDanger = 900
 	batteryCapWarn     = 90
 	batteryCapDanger   = 80
 
@@ -138,7 +138,7 @@ func calculateHealthScore(cpu CPUStatus, mem MemoryStatus, disks []DiskStatus, d
 	// Battery health penalty (only when battery present).
 	if len(batteries) > 0 {
 		b := batteries[0]
-		_, sev := batteryHealthLabel(b.CycleCount, b.Capacity)
+		_, sev := BatteryHealthLabel(b.CycleCount, b.Capacity)
 		switch sev {
 		case "danger":
 			score -= 5
@@ -186,20 +186,20 @@ func calculateHealthScore(cpu CPUStatus, mem MemoryStatus, disks []DiskStatus, d
 	return int(score), msg
 }
 
-// batteryHealthLabel returns a human-readable health label and severity based on cycle count and capacity.
+// BatteryHealthLabel returns a human-readable health label and severity based on cycle count and capacity.
 // Severity is "ok", "warn", or "danger".
-func batteryHealthLabel(cycles int, capacity int) (string, string) {
-	if cycles > batteryCycleDanger || (capacity > 0 && capacity < batteryCapDanger) {
+func BatteryHealthLabel(cycles int, capacity int) (string, string) {
+	if cycles > BatteryCycleDanger || (capacity > 0 && capacity < batteryCapDanger) {
 		return "Service Soon", "danger"
 	}
-	if cycles > batteryCycleWarn || (capacity > 0 && capacity < batteryCapWarn) {
+	if cycles > BatteryCycleWarn || (capacity > 0 && capacity < batteryCapWarn) {
 		return "Fair", "warn"
 	}
 	return "Healthy", "ok"
 }
 
-// uptimeSeverity returns "ok", "warn", or "danger" based on uptime seconds.
-func uptimeSeverity(secs uint64) string {
+// UptimeSeverity returns "ok", "warn", or "danger" based on uptime seconds.
+func UptimeSeverity(secs uint64) string {
 	if secs > uptimeDangerSecs {
 		return "danger"
 	}

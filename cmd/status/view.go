@@ -7,6 +7,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 
+	"github.com/tw93/mole/internal/status"
 	"github.com/tw93/mole/internal/units"
 )
 
@@ -179,7 +180,7 @@ func renderHeader(m status.MetricsSnapshot, errMsg string, animFrame int, termWi
 	}
 	if !compactHeader && m.Uptime != "" {
 		uptimeText := "up " + m.Uptime
-		switch uptimeSeverity(m.UptimeSeconds) {
+		switch status.UptimeSeverity(m.UptimeSeconds) {
 		case "danger":
 			uptimeText = dangerStyle.Render(uptimeText + " ↻")
 		case "warn":
@@ -259,7 +260,7 @@ func renderProcessAlertBar(alerts []status.ProcessAlert, width int) string {
 
 	text := fmt.Sprintf(
 		"ALERT %s at %.1f%% for %s (threshold %.1f%%)",
-		formatProcessLabel(ProcessInfo{PID: focus.PID, Name: focus.Name}),
+		status.FormatProcessLabel(status.ProcessInfo{PID: focus.PID, Name: focus.Name}),
 		focus.CPU,
 		focus.Window,
 		focus.Threshold,
@@ -278,7 +279,7 @@ func renderBanner(style lipgloss.Style, text string, width int) string {
 	return style.Render(text)
 }
 
-func renderCPUCard(cpu status.CPUStatus, thermal ThermalStatus) cardData {
+func renderCPUCard(cpu status.CPUStatus, thermal status.ThermalStatus) cardData {
 	var lines []string
 
 	// Line 1: Usage + Temp (Format: 15% @ 30.4°C)
@@ -387,7 +388,7 @@ func renderMemoryCard(mem status.MemoryStatus, cardWidth int) cardData {
 	return cardData{icon: iconMemory, title: "Memory", lines: lines}
 }
 
-func renderDiskCard(disks []status.DiskStatus, io DiskIOStatus, trashSize uint64, trashApprox bool) cardData {
+func renderDiskCard(disks []status.DiskStatus, io status.DiskIOStatus, trashSize uint64, trashApprox bool) cardData {
 	var lines []string
 	if len(disks) == 0 {
 		lines = append(lines, subtleStyle.Render("Collecting..."))
@@ -475,7 +476,7 @@ func ioBar(rate float64) string {
 	return okStyle.Render(bar)
 }
 
-func renderProcessCard(procs []ProcessInfo) cardData {
+func renderProcessCard(procs []status.ProcessInfo) cardData {
 	var lines []string
 	maxProcs := 3
 	for i, p := range procs {
@@ -513,7 +514,7 @@ func miniBar(percent float64) string {
 	return colorizePercent(percent, strings.Repeat("▮", filled)+strings.Repeat("▯", 5-filled))
 }
 
-func renderNetworkCard(netStats []status.NetworkStatus, history NetworkHistory, proxy ProxyStatus, cardWidth int) cardData {
+func renderNetworkCard(netStats []status.NetworkStatus, history status.NetworkHistory, proxy status.ProxyStatus, cardWidth int) cardData {
 	var lines []string
 	var totalRx, totalTx float64
 	var primaryIP string
@@ -602,7 +603,7 @@ func sparkline(history []float64, current float64, width int) string {
 	return okStyle.Render(result)
 }
 
-func renderBatteryCard(batts []BatteryStatus, thermal ThermalStatus) cardData {
+func renderBatteryCard(batts []status.BatteryStatus, thermal status.ThermalStatus) cardData {
 	var lines []string
 	if len(batts) == 0 {
 		lines = append(lines, subtleStyle.Render("No battery"))
@@ -653,7 +654,7 @@ func renderBatteryCard(batts []BatteryStatus, thermal ThermalStatus) cardData {
 
 		// Battery health assessment label.
 		if b.CycleCount > 0 || b.Capacity > 0 {
-			label, severity := batteryHealthLabel(b.CycleCount, b.Capacity)
+			label, severity := status.BatteryHealthLabel(b.CycleCount, b.Capacity)
 			switch severity {
 			case "danger":
 				healthParts = append(healthParts, dangerStyle.Render(label))
@@ -668,9 +669,9 @@ func renderBatteryCard(batts []BatteryStatus, thermal ThermalStatus) cardData {
 
 		if b.CycleCount > 0 {
 			cycleText := fmt.Sprintf("%d cycles", b.CycleCount)
-			if b.CycleCount > batteryCycleDanger {
+			if b.CycleCount > status.BatteryCycleDanger {
 				cycleText = dangerStyle.Render(cycleText)
-			} else if b.CycleCount > batteryCycleWarn {
+			} else if b.CycleCount > status.BatteryCycleWarn {
 				cycleText = warnStyle.Render(cycleText)
 			}
 			healthParts = append(healthParts, cycleText)

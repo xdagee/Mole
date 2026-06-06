@@ -145,7 +145,7 @@ func topProcesses(processes []ProcessInfo, limit int) []ProcessInfo {
 	return top
 }
 
-func formatProcessLabel(proc ProcessInfo) string {
+func FormatProcessLabel(proc ProcessInfo) string {
 	if proc.Name != "" {
 		return fmt.Sprintf("%s (%d)", proc.Name, proc.PID)
 	}

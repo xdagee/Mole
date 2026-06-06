@@ -2,11 +2,13 @@ import { useState, useEffect, useRef } from 'react';
 import { RunClean, ListApps, RunUninstall, RunOptimize, RunPurge, CancelOperation, PreviewClean } from '../wailsjs/go/main/App';
 import { platform, clean } from '../wailsjs/go/models';
 import { EventsOn } from '../wailsjs/runtime/runtime';
-import { Shield, Trash2, Zap, Archive, CheckCircle, Loader2, X, AlertTriangle, Eye } from 'lucide-react';
+import { Shield, Trash2, Zap, Archive, CheckCircle, Loader2, X, AlertTriangle, Eye, Activity, HardDrive } from 'lucide-react';
 import './style.css';
+import StatusView from './Status';
+import AnalyzeView from './Analyze';
 
 function App() {
-  const [activeTab, setActiveTab] = useState('clean');
+  const [activeTab, setActiveTab] = useState('status');
   const [logs, setLogs] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   
@@ -23,7 +25,6 @@ function App() {
   const logsEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Scroll to bottom of logs
     logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [logs]);
 
@@ -149,143 +150,157 @@ function App() {
         </div>
       )}
 
-      <div className="sidebar">
-        <div className="brand">
+      {/* Top Pill Navigation */}
+      <div className="top-nav-container">
+        <div className="brand" style={{marginBottom: 0}}>
           <Shield className="text-accent" /> Mole
         </div>
-        
-        <div className={`nav-item ${activeTab === 'clean' ? 'active' : ''}`} onClick={() => setActiveTab('clean')}>
-          <Trash2 size={18} /> Clean System
-        </div>
-        <div className={`nav-item ${activeTab === 'uninstall' ? 'active' : ''}`} onClick={() => setActiveTab('uninstall')}>
-          <Archive size={18} /> Uninstaller
-        </div>
-        <div className={`nav-item ${activeTab === 'optimize' ? 'active' : ''}`} onClick={() => setActiveTab('optimize')}>
-          <Zap size={18} /> Optimize
-        </div>
-        <div className={`nav-item ${activeTab === 'purge' ? 'active' : ''}`} onClick={() => setActiveTab('purge')}>
-          <Archive size={18} /> Purge Projects
+        <div className="pill-nav">
+          <div className={`nav-item ${activeTab === 'status' ? 'active' : ''}`} onClick={() => setActiveTab('status')}>
+            <Activity size={16} /> Status
+          </div>
+          <div className={`nav-item ${activeTab === 'analyze' ? 'active' : ''}`} onClick={() => setActiveTab('analyze')}>
+            <HardDrive size={16} /> Analyze
+          </div>
+          <div className={`nav-item ${activeTab === 'clean' ? 'active' : ''}`} onClick={() => setActiveTab('clean')}>
+            <Trash2 size={16} /> Clean
+          </div>
+          <div className={`nav-item ${activeTab === 'uninstall' ? 'active' : ''}`} onClick={() => setActiveTab('uninstall')}>
+            <Archive size={16} /> Uninstall
+          </div>
+          <div className={`nav-item ${activeTab === 'optimize' ? 'active' : ''}`} onClick={() => setActiveTab('optimize')}>
+            <Zap size={16} /> Optimize
+          </div>
+          <div className={`nav-item ${activeTab === 'purge' ? 'active' : ''}`} onClick={() => setActiveTab('purge')}>
+            <Archive size={16} /> Purge
+          </div>
         </div>
       </div>
 
       <div className="main-content">
-        <div className="header">
-          <h1>
-            {activeTab === 'clean' && 'System Cleanup'}
-            {activeTab === 'uninstall' && 'App Uninstaller'}
-            {activeTab === 'optimize' && 'System Optimization'}
-            {activeTab === 'purge' && 'Project Purge'}
-          </h1>
-          <p>
-            {activeTab === 'clean' && 'Deep clean browser caches, temps, and developer leftovers.'}
-            {activeTab === 'uninstall' && 'Smart application uninstaller that cleans leftover data.'}
-            {activeTab === 'optimize' && 'Optimize Windows system components and networks.'}
-            {activeTab === 'purge' && 'Remove heavy project artifacts like node_modules.'}
-          </p>
-        </div>
+        {activeTab === 'status' && <StatusView />}
+        {activeTab === 'analyze' && <AnalyzeView />}
 
-        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-            {activeTab === 'clean' && (
-              <>
-                {!loading ? (
-                  <>
-                    <button className="btn btn-danger" onClick={() => requestAction(RunClean, 'System Cleanup')}>
-                      <Trash2 size={18} /> Start Cleanup
-                    </button>
-                    <button className="btn" style={{ background: 'var(--bg-panel-hover)' }} onClick={handlePreviewClean} disabled={previewLoading}>
-                      {previewLoading ? <Loader2 className="animate-spin" size={18} /> : <Eye size={18} />} Preview Items
-                    </button>
-                  </>
-                ) : (
-                  <button className="btn" style={{ background: 'var(--bg-panel-hover)', color: 'var(--danger)' }} onClick={handleCancel}>
-                    <X size={18} /> Stop Operation
-                  </button>
-                )}
-              </>
-            )}
-
-            {activeTab === 'uninstall' && (
-              <>
-                {!loading ? (
-                  <button className="btn btn-danger" onClick={requestUninstall} disabled={!selectedApp}>
-                    <Archive size={18} /> Uninstall Selected
-                  </button>
-                ) : (
-                  <button className="btn" style={{ background: 'var(--bg-panel-hover)', color: 'var(--danger)' }} onClick={handleCancel}>
-                    <X size={18} /> Stop Operation
-                  </button>
-                )}
-              </>
-            )}
-
-            {activeTab === 'optimize' && (
-              <>
-                {!loading ? (
-                  <button className="btn" onClick={() => requestAction(RunOptimize, 'Optimization')}>
-                    <Zap size={18} /> Start Optimization
-                  </button>
-                ) : (
-                  <button className="btn" style={{ background: 'var(--bg-panel-hover)', color: 'var(--danger)' }} onClick={handleCancel}>
-                    <X size={18} /> Stop Operation
-                  </button>
-                )}
-              </>
-            )}
-
-            {activeTab === 'purge' && (
-              <>
-                {!loading ? (
-                  <button className="btn btn-danger" onClick={() => requestAction(RunPurge, 'Project Purge')}>
-                    <CheckCircle size={18} /> Start Purge
-                  </button>
-                ) : (
-                  <button className="btn" style={{ background: 'var(--bg-panel-hover)', color: 'var(--danger)' }} onClick={handleCancel}>
-                    <X size={18} /> Stop Operation
-                  </button>
-                )}
-              </>
-            )}
-          </div>
-
-          {activeTab === 'uninstall' && apps.length > 0 && !loading && (
-            <div className="app-list" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-              {apps.map((app, idx) => (
-                <div key={idx} className={`app-item ${selectedApp === app.Name ? 'selected' : ''}`} onClick={() => setSelectedApp(app.Name)}>
-                  <div>
-                    <strong>{app.Name}</strong>
-                    <div style={{fontSize: '0.8rem', color: 'var(--text-muted)'}}>{app.Path}</div>
-                  </div>
-                </div>
-              ))}
+        {['clean', 'uninstall', 'optimize', 'purge'].includes(activeTab) && (
+          <>
+            <div className="header">
+              <h1>
+                {activeTab === 'clean' && 'System Cleanup'}
+                {activeTab === 'uninstall' && 'App Uninstaller'}
+                {activeTab === 'optimize' && 'System Optimization'}
+                {activeTab === 'purge' && 'Project Purge'}
+              </h1>
+              <p>
+                {activeTab === 'clean' && 'Deep clean browser caches, temps, and developer leftovers.'}
+                {activeTab === 'uninstall' && 'Smart application uninstaller that cleans leftover data.'}
+                {activeTab === 'optimize' && 'Optimize Windows system components and networks.'}
+                {activeTab === 'purge' && 'Remove heavy project artifacts like node_modules.'}
+              </p>
             </div>
-          )}
 
-          {activeTab === 'clean' && previewData !== null && !loading && (
-            <div style={{ background: 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: '0.5rem' }}>
-              <h3 style={{ margin: '0 0 1rem 0' }}>Preview Results</h3>
-              {previewData.length === 0 ? <p>No items found.</p> : (
-                <div style={{ maxHeight: '300px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {previewData.map((item, idx) => (
-                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem', borderBottom: '1px solid var(--border-color)' }}>
-                      <span style={{ fontSize: '0.9rem' }}>{item.Path}</span>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{(item.Size / 1024 / 1024).toFixed(2)} MB</span>
+            <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                {activeTab === 'clean' && (
+                  <>
+                    {!loading ? (
+                      <>
+                        <button className="btn btn-danger" onClick={() => requestAction(RunClean, 'System Cleanup')}>
+                          <Trash2 size={18} /> Start Cleanup
+                        </button>
+                        <button className="btn" style={{ background: 'var(--bg-panel-hover)' }} onClick={handlePreviewClean} disabled={previewLoading}>
+                          {previewLoading ? <Loader2 className="animate-spin" size={18} /> : <Eye size={18} />} Preview Items
+                        </button>
+                      </>
+                    ) : (
+                      <button className="btn" style={{ background: 'var(--bg-panel-hover)', color: 'var(--danger)' }} onClick={handleCancel}>
+                        <X size={18} /> Stop Operation
+                      </button>
+                    )}
+                  </>
+                )}
+
+                {activeTab === 'uninstall' && (
+                  <>
+                    {!loading ? (
+                      <button className="btn btn-danger" onClick={requestUninstall} disabled={!selectedApp}>
+                        <Archive size={18} /> Uninstall Selected
+                      </button>
+                    ) : (
+                      <button className="btn" style={{ background: 'var(--bg-panel-hover)', color: 'var(--danger)' }} onClick={handleCancel}>
+                        <X size={18} /> Stop Operation
+                      </button>
+                    )}
+                  </>
+                )}
+
+                {activeTab === 'optimize' && (
+                  <>
+                    {!loading ? (
+                      <button className="btn" onClick={() => requestAction(RunOptimize, 'Optimization')}>
+                        <Zap size={18} /> Start Optimization
+                      </button>
+                    ) : (
+                      <button className="btn" style={{ background: 'var(--bg-panel-hover)', color: 'var(--danger)' }} onClick={handleCancel}>
+                        <X size={18} /> Stop Operation
+                      </button>
+                    )}
+                  </>
+                )}
+
+                {activeTab === 'purge' && (
+                  <>
+                    {!loading ? (
+                      <button className="btn btn-danger" onClick={() => requestAction(RunPurge, 'Project Purge')}>
+                        <CheckCircle size={18} /> Start Purge
+                      </button>
+                    ) : (
+                      <button className="btn" style={{ background: 'var(--bg-panel-hover)', color: 'var(--danger)' }} onClick={handleCancel}>
+                        <X size={18} /> Stop Operation
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
+
+              {activeTab === 'uninstall' && apps.length > 0 && !loading && (
+                <div className="app-list" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                  {apps.map((app, idx) => (
+                    <div key={idx} className={`app-item ${selectedApp === app.Name ? 'selected' : ''}`} onClick={() => setSelectedApp(app.Name)}>
+                      <div>
+                        <strong>{app.Name}</strong>
+                        <div style={{fontSize: '0.8rem', color: 'var(--text-muted)'}}>{app.Path}</div>
+                      </div>
                     </div>
                   ))}
                 </div>
               )}
-            </div>
-          )}
 
-          {(logs.length > 0 || loading) && (
-            <div className="output-console animate-fade-in">
-              {logs.map((log, idx) => <div key={idx}>{log}</div>)}
-              {loading && <div className="flex items-center gap-2 mt-2" style={{color: 'var(--text-muted)'}}><Loader2 className="animate-spin" size={14} /> Processing...</div>}
-              <div ref={logsEndRef} />
+              {activeTab === 'clean' && previewData !== null && !loading && (
+                <div style={{ background: 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: '0.5rem' }}>
+                  <h3 style={{ margin: '0 0 1rem 0' }}>Preview Results</h3>
+                  {previewData.length === 0 ? <p>No items found.</p> : (
+                    <div style={{ maxHeight: '300px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      {previewData.map((item, idx) => (
+                        <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem', borderBottom: '1px solid var(--border-color)' }}>
+                          <span style={{ fontSize: '0.9rem' }}>{item.Path}</span>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{(item.Size / 1024 / 1024).toFixed(2)} MB</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {(logs.length > 0 || loading) && (
+                <div className="output-console animate-fade-in">
+                  {logs.map((log, idx) => <div key={idx}>{log}</div>)}
+                  {loading && <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem', color: 'var(--text-muted)'}}><Loader2 className="animate-spin" size={14} /> Processing...</div>}
+                  <div ref={logsEndRef} />
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </>
+        )}
       </div>
     </div>
   );
