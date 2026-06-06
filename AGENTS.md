@@ -11,7 +11,8 @@ Mole is a cross-platform system cleanup and optimization tool written in Go, sup
 - `cmd/mole/` - Unified CLI entrypoint (`main.go`). Handles CLI flag parsing, help text generation, interactive Bubble Tea menu routing, and module execution.
 - `cmd/platform/` - OS abstraction layer (`platform.go`, `platform_darwin.go`, `platform_windows.go`). Handles path resolution, admin elevation checks, Registry scans, WMI queries, DNS flushes, and Recycle Bin/Trash emptying.
 - `cmd/analyze/` - Go disk-analysis TUI (Bubble Tea). Holds the update chain and file scanning/deletion views.
-- `cmd/status/` - Go status dashboard TUI. Displays CPU, RAM, disk, power, network, and process metrics.
+- `cmd/gui/` - Native Wails-based graphical user interface (React/TypeScript). Features interactive Disk Analyzer and System Status dashboards.
+- `internal/status/` - System metrics collector. Gathers cross-platform CPU, RAM, disk, power, network, and process metrics.
 - `internal/clean/` - Cleanup engine. Includes modular sweepers:
   - `user.go` - Windows Temp, browser caches (Chrome, Edge, Brave, Firefox).
   - `dev.go` - Developer tool caches (npm, pip, gradle, rust/cargo).
@@ -78,6 +79,8 @@ These directories and files hold core logic:
 - `pkg/fsutil/glob.go` owns concurrent walking and NTFS junction filters.
 - `internal/clean/user.go` and `internal/clean/dev.go` own cache sweepers.
 - `cmd/mole/main.go` handles CLI orchestration and Bubble Tea command routing.
+- `cmd/gui/app.go` owns the Wails desktop application backend bridging.
+- `internal/status/metrics.go` owns system-wide telemetry collection.
 
 ## Verification
 

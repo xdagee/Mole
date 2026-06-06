@@ -16,7 +16,7 @@
   <img src="https://gw.alipayobjects.com/zos/k/ro/ZzF8e8.png" alt="Mole - 95.50GB freed" width="1000" />
 </p>
 
-> The CLI stays free and open source. Prefer a GUI? Try [Mole Mac App](https://mole.fit), $9 lifetime, code **MOLEMAC** for 20% off through May 23.
+> The CLI stays free and open source. A native Windows and macOS GUI is now included in this repository. Prefer the premium App Store GUI? Try [Mole Mac App](https://mole.fit).
 
 ## Features
 
@@ -26,6 +26,7 @@
 - **Disk insights**: Visualizes usage, finds large files, **rebuilds caches**, and refreshes system services
 - **Live monitoring**: Shows real-time CPU, memory, disk, and network stats
 - **Cross-platform**: Built natively in Go for **macOS and Windows x64**
+- **Native UI**: Includes a fully featured Wails React application for visual system management and telemetry
 
 ## Quick Start
 
@@ -53,9 +54,12 @@ go install github.com/tw93/mole/cmd/mole@latest
 ```
 
 **Or download the compiled executable**
-Grab the latest `mole-windows-amd64.exe` from the [Releases](https://github.com/tw93/mole/releases) page and add it to your `PATH`.
+Grab the latest `mole-windows-amd64.exe` (CLI) or `mole-gui-windows-amd64.exe` (Desktop App) from the [Releases](https://github.com/tw93/mole/releases) page.
 
-**Run**
+**Run GUI**
+Simply double-click `mole-gui-windows-amd64.exe` to launch the visual interface.
+
+**Run CLI**
 
 ```bash
 mo                           # Interactive menu
